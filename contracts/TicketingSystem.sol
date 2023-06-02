@@ -19,6 +19,8 @@ contract TicketingSystem is ERC721, Ownable {
         nextTicketId = 1;
     }
 
+    // TODO
+    // only allow event organizers to mint the ticket
     function mintTicket(
         address to,
         string memory eventName,
@@ -40,6 +42,7 @@ contract TicketingSystem is ERC721, Ownable {
     }
 
     function getTicketPrice(uint256 ticketId) public pure returns (uint256) {
+        // TODO
         // Replace this function with a more sophisticated pricing mechanism if desired
         return 0.1 ether;
     }
