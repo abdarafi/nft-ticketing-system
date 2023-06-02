@@ -11,6 +11,7 @@ contract TicketingSystem is ERC721, Ownable {
         uint256 eventDate;
         uint256 eventTime;
         uint256 seatNumber;
+        uint256 price;
     }
 
     mapping(uint256 => Ticket) public tickets;
@@ -20,15 +21,17 @@ contract TicketingSystem is ERC721, Ownable {
     }
 
     // TODO
-    // only allow event organizers to mint the ticket
+    // now only the address that deployed the contract can mint tickets
+    // consider using AccessControl if we want to allow multiple specific address
     function mintTicket(
         address to,
         string memory eventName,
         uint256 eventDate,
         uint256 eventTime,
-        uint256 seatNumber
+        uint256 seatNumber,
+        uint256 price // unit is in wei; 0.1 ETH: 100000000000000000 weis
     ) public onlyOwner {
-        Ticket memory newTicket = Ticket(eventName, eventDate, eventTime, seatNumber);
+        Ticket memory newTicket = Ticket(eventName, eventDate, eventTime, seatNumber, price);
         tickets[nextTicketId] = newTicket;
         _mint(to, nextTicketId);
         nextTicketId++;
@@ -41,10 +44,8 @@ contract TicketingSystem is ERC721, Ownable {
         payable(currentOwner).transfer(msg.value);
     }
 
-    function getTicketPrice(uint256 ticketId) public pure returns (uint256) {
-        // TODO
-        // Replace this function with a more sophisticated pricing mechanism if desired
-        return 0.1 ether;
+    function getTicketPrice(uint256 ticketId) public view returns (uint256) {
+        return tickets[ticketId].price;
     }
 
     function verifyTicketOwnership(uint256 ticketId, address claimant) public view returns (bool) {
