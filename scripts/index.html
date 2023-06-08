@@ -5,32 +5,97 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ticketing System</title>
     <script src="https://cdn.jsdelivr.net/npm/web3@1.3.0/dist/web3.min.js"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <style>
+        body {
+            font-family: Roboto, Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f5f5f5;
+            margin: 0;
+        }
+
+        .container {
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 50px;
+            border-radius: 4px;
+        }
+
+        .container h1 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-weight: 500;
+            font-size: 24px;
+            color: #333;
+        }
+
+        .container input[type="text"],
+        .container input[type="number"],
+        .container input[type="datetime-local"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            outline: none;
+            margin-right: 4px;
+            margin-left: 4px;
+        }
+
+        .container button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .container button:hover {
+            background-color: #45a049;
+        }
+
+        .container .error-message {
+            color: red;
+            margin-top: 5px;
+            font-size: 12px;
+        }
+    </style>
 </head>
 <body>
-    <h1>Ticketing System</h1>
+    <div class="container">
+        <h1>Ticketing System</h1>
 
-    <div>
-        <h2>Mint Ticket</h2>
-        <input type="text" id="eventName" placeholder="Event Name">
-        <input type="number" id="eventDate" placeholder="Event Date (Unix Timestamp)">
-        <input type="number" id="eventTime" placeholder="Event Time (Unix Timestamp)">
-        <input type="number" id="seatNumber" placeholder="Seat Number">
-        <input type="number" id="price" placeholder="Price (In Ether)">
-        <button id="mintTicketButton">Mint Ticket</button>
-    </div>
+        <div>
+            <h2>Mint Ticket</h2>
+            <input type="text" id="eventName" placeholder="Event Name" required>
+            <input type="datetime-local" id="eventDateTime" required>
+            <input type="number" id="seatNumber" placeholder="Seat Number" required>
+            <input type="number" id="price" placeholder="Price (In Ether)" required>
+            <button id="mintTicketButton">Mint Ticket</button>
+            <p id="mintTicketError" class="error-message"></p>
+        </div>
 
-    <div>
-        <h2>Buy Ticket</h2>
-        <input type="number" id="ticketIdToBuy" placeholder="Ticket ID">
-        <button id="buyTicketButton">Buy Ticket</button>
-    </div>
+        <div>
+            <h2>Buy Ticket</h2>
+            <input type="number" id="ticketIdToBuy" placeholder="Ticket ID" required>
+            <button id="buyTicketButton">Buy Ticket</button>
+            <p id="buyTicketError" class="error-message"></p>
+        </div>
 
-    <div>
-        <h2>Verify Ticket Ownership</h2>
-        <input type="number" id="ticketIdToVerify" placeholder="Ticket ID">
-        <input type="text" id="claimantAddress" placeholder="Claimant Address">
-        <button id="verifyOwnershipButton">Verify Ownership</button>
-        <p id="verifyResult"></p>
+        <div>
+            <h2>Verify Ticket Ownership</h2>
+            <input type="number" id="ticketIdToVerify" placeholder="Ticket ID" required>
+            <input type="text" id="claimantAddress" placeholder="Claimant Address" required>
+            <button id="verifyOwnershipButton">Verify Ownership</button>
+            <p id="verifyOwnershipError" class="error-message"></p>
+            <p id="verifyResult"></p>
+        </div>
     </div>
 
     <script>
@@ -41,28 +106,48 @@
         const contract = new web3.eth.Contract(contractABI, contractAddress);
 
         async function mintTicket() {
-            const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
-            const account = accounts[0];
             const eventName = document.getElementById('eventName').value;
-            const eventDate = document.getElementById('eventDate').value;
-            const eventTime = document.getElementById('eventTime').value;
+            const eventDateTime = document.getElementById('eventDateTime').value;
             const seatNumber = document.getElementById('seatNumber').value;
             const price = document.getElementById('price').value;
+
+            if (!eventName || !eventDateTime || !seatNumber || !price) {
+                document.getElementById('mintTicketError').innerText = 'Please fill in all the fields.';
+                return;
+            }
+
+            const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+            const account = accounts[0];
+            const eventTimestamp = Math.floor(new Date(eventDateTime).getTime() / 1000);
             const priceInWei = web3.utils.toWei(price, 'ether');
-            await contract.methods.mintTicket(account, eventName, eventDate, eventTime, seatNumber, priceInWei).send({ from: account });
+
+            await contract.methods.mintTicket(account, eventName, eventTimestamp, seatNumber, priceInWei).send({ from: account });
         }
 
         async function buyTicket() {
+            const ticketId = document.getElementById('ticketIdToBuy').value;
+
+            if (!ticketId) {
+                document.getElementById('buyTicketError').innerText = 'Please enter the ticket ID.';
+                return;
+            }
+
             const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
             const account = accounts[0];
-            const ticketId = document.getElementById('ticketIdToBuy').value;
             const price = await contract.methods.getTicketPrice(ticketId).call();
+
             await contract.methods.buyTicket(ticketId).send({ from: account, value: price });
         }
 
         async function verifyOwnership() {
             const ticketId = document.getElementById('ticketIdToVerify').value;
             const claimantAddress = document.getElementById('claimantAddress').value;
+
+            if (!ticketId || !claimantAddress) {
+                document.getElementById('verifyOwnershipError').innerText = 'Please fill in all the fields.';
+                return;
+            }
+
             const isOwner = await contract.methods.verifyTicketOwnership(ticketId, claimantAddress).call();
             document.getElementById('verifyResult').innerText = isOwner ? 'This address owns the ticket.' : 'This address does not own the ticket.';
         }
