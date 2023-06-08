@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Ticketing System</title>
     <script src="https://cdn.jsdelivr.net/npm/web3@1.3.0/dist/web3.min.js"></script>
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
@@ -16,96 +16,646 @@
             margin: 0;
         }
 
-        .container {
-            background-color: #fff;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            padding: 50px;
-            border-radius: 4px;
-        }
+      .container {
+          background-color: #fff;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+          padding: 50px;
+          border-radius: 4px;
+          max-width: 500px;
+          width: 100%;
+      }
 
-        .container h1 {
-            margin-top: 0;
-            margin-bottom: 20px;
-            font-weight: 500;
-            font-size: 24px;
-            color: #333;
-        }
+      .container h1 {
+          margin-top: 0;
+          margin-bottom: 20px;
+          font-weight: 500;
+          font-size: 24px;
+          color: #333;
+      }
 
-        .container input[type="text"],
-        .container input[type="number"],
-        .container input[type="datetime-local"] {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            margin-bottom: 15px;
-            font-size: 14px;
-            outline: none;
-            margin-right: 4px;
-            margin-left: 4px;
-        }
+      .container input[type="text"],
+      .container input[type="number"],
+      .container input[type="datetime-local"] {
+          width: 100%;
+          padding: 10px;
+          border: 1px solid #ccc;
+          border-radius: 4px;
+          margin-bottom: 15px;
+          font-size: 14px;
+          outline: none;
+      }
 
-        .container button {
-            padding: 10px 20px;
-            background-color: #4CAF50;
-            color: #fff;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-        }
+      .container button {
+          padding: 10px 20px;
+          background-color: #4CAF50;
+          color: #fff;
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+          font-size: 14px;
+      }
 
-        .container button:hover {
-            background-color: #45a049;
-        }
+      .container button:hover {
+          background-color: #45a049;
+      }
 
-        .container .error-message {
-            color: red;
-            margin-top: 5px;
-            font-size: 12px;
-        }
-    </style>
+      .container .error-message {
+          color: red;
+          margin-top: 5px;
+          font-size: 12px;
+      }
+
+      @media (max-width: 600px) {
+          .container {
+              padding: 10px;
+          }
+
+          .container h1 {
+              font-size: 20px;
+          }
+      }
+  </style>
 </head>
 <body>
     <div class="container">
         <h1>Ticketing System</h1>
 
-        <div>
-            <h2>Mint Ticket</h2>
-            <input type="text" id="eventName" placeholder="Event Name" required>
-            <input type="datetime-local" id="eventDateTime" required>
-            <input type="number" id="seatNumber" placeholder="Seat Number" required>
-            <input type="number" id="price" placeholder="Price (In Ether)" required>
-            <button id="mintTicketButton">Mint Ticket</button>
-            <p id="mintTicketError" class="error-message"></p>
-        </div>
+    <div>
+      <h2>Mint Ticket</h2>
+      <input type="text" id="eventName" placeholder="Event Name" />
+      <input type="datetime-local" id="eventDateTime" required>
+      <input type="number" id="seatNumber" placeholder="Seat Number" />
+      <input type="number" id="price" placeholder="Price (In Ether)" />
+      <button id="mintTicketButton">Mint Ticket</button>
+    </div>
 
-        <div>
-            <h2>Buy Ticket</h2>
-            <input type="number" id="ticketIdToBuy" placeholder="Ticket ID" required>
-            <button id="buyTicketButton">Buy Ticket</button>
-            <p id="buyTicketError" class="error-message"></p>
-        </div>
+    <div>
+      <h2>Get Ticket Price</h2>
+      <input
+        type="text"
+        id="ticketIdToGetPrice"
+        placeholder="Enter ticket ID"
+      />
+      <button id="getPriceButton">Get Ticket Price</button>
+    </div>
 
-        <div>
-            <h2>Verify Ticket Ownership</h2>
-            <input type="number" id="ticketIdToVerify" placeholder="Ticket ID" required>
-            <input type="text" id="claimantAddress" placeholder="Claimant Address" required>
-            <button id="verifyOwnershipButton">Verify Ownership</button>
-            <p id="verifyOwnershipError" class="error-message"></p>
-            <p id="verifyResult"></p>
-        </div>
+    <div>
+        <h2>Buy Ticket</h2>
+        <input type="number" id="ticketIdToBuy" placeholder="Ticket ID">
+        <button id="buyTicketButton">Buy Ticket</button>
+    </div>
+
+    <div>
+        <h2>Verify Ticket Ownership</h2>
+        <input type="number" id="ticketIdToVerify" placeholder="Ticket ID">
+        <input type="text" id="claimantAddress" placeholder="Claimant Address">
+        <button id="verifyOwnershipButton">Verify Ownership</button>
+        <p id="verifyResult"></p>
     </div>
 
     <script>
-        const contractABI = []; // replace this with your contract's ABI
-        const contractAddress = ''; // replace this with your deployed contract's address
+      const contractABI = [
+        {
+          inputs: [],
+          stateMutability: "nonpayable",
+          type: "constructor",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: true,
+              internalType: "address",
+              name: "owner",
+              type: "address",
+            },
+            {
+              indexed: true,
+              internalType: "address",
+              name: "approved",
+              type: "address",
+            },
+            {
+              indexed: true,
+              internalType: "uint256",
+              name: "tokenId",
+              type: "uint256",
+            },
+          ],
+          name: "Approval",
+          type: "event",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: true,
+              internalType: "address",
+              name: "owner",
+              type: "address",
+            },
+            {
+              indexed: true,
+              internalType: "address",
+              name: "operator",
+              type: "address",
+            },
+            {
+              indexed: false,
+              internalType: "bool",
+              name: "approved",
+              type: "bool",
+            },
+          ],
+          name: "ApprovalForAll",
+          type: "event",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: true,
+              internalType: "address",
+              name: "previousOwner",
+              type: "address",
+            },
+            {
+              indexed: true,
+              internalType: "address",
+              name: "newOwner",
+              type: "address",
+            },
+          ],
+          name: "OwnershipTransferred",
+          type: "event",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: true,
+              internalType: "address",
+              name: "from",
+              type: "address",
+            },
+            {
+              indexed: true,
+              internalType: "address",
+              name: "to",
+              type: "address",
+            },
+            {
+              indexed: true,
+              internalType: "uint256",
+              name: "tokenId",
+              type: "uint256",
+            },
+          ],
+          name: "Transfer",
+          type: "event",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "to",
+              type: "address",
+            },
+            {
+              internalType: "uint256",
+              name: "tokenId",
+              type: "uint256",
+            },
+          ],
+          name: "approve",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "owner",
+              type: "address",
+            },
+          ],
+          name: "balanceOf",
+          outputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+          constant: true,
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "tokenId",
+              type: "uint256",
+            },
+          ],
+          name: "getApproved",
+          outputs: [
+            {
+              internalType: "address",
+              name: "",
+              type: "address",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+          constant: true,
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "owner",
+              type: "address",
+            },
+            {
+              internalType: "address",
+              name: "operator",
+              type: "address",
+            },
+          ],
+          name: "isApprovedForAll",
+          outputs: [
+            {
+              internalType: "bool",
+              name: "",
+              type: "bool",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+          constant: true,
+        },
+        {
+          inputs: [],
+          name: "name",
+          outputs: [
+            {
+              internalType: "string",
+              name: "",
+              type: "string",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+          constant: true,
+        },
+        {
+          inputs: [],
+          name: "owner",
+          outputs: [
+            {
+              internalType: "address",
+              name: "",
+              type: "address",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+          constant: true,
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "tokenId",
+              type: "uint256",
+            },
+          ],
+          name: "ownerOf",
+          outputs: [
+            {
+              internalType: "address",
+              name: "",
+              type: "address",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+          constant: true,
+        },
+        {
+          inputs: [],
+          name: "renounceOwnership",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "from",
+              type: "address",
+            },
+            {
+              internalType: "address",
+              name: "to",
+              type: "address",
+            },
+            {
+              internalType: "uint256",
+              name: "tokenId",
+              type: "uint256",
+            },
+          ],
+          name: "safeTransferFrom",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "from",
+              type: "address",
+            },
+            {
+              internalType: "address",
+              name: "to",
+              type: "address",
+            },
+            {
+              internalType: "uint256",
+              name: "tokenId",
+              type: "uint256",
+            },
+            {
+              internalType: "bytes",
+              name: "data",
+              type: "bytes",
+            },
+          ],
+          name: "safeTransferFrom",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "operator",
+              type: "address",
+            },
+            {
+              internalType: "bool",
+              name: "approved",
+              type: "bool",
+            },
+          ],
+          name: "setApprovalForAll",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "bytes4",
+              name: "interfaceId",
+              type: "bytes4",
+            },
+          ],
+          name: "supportsInterface",
+          outputs: [
+            {
+              internalType: "bool",
+              name: "",
+              type: "bool",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+          constant: true,
+        },
+        {
+          inputs: [],
+          name: "symbol",
+          outputs: [
+            {
+              internalType: "string",
+              name: "",
+              type: "string",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+          constant: true,
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          name: "tickets",
+          outputs: [
+            {
+              internalType: "string",
+              name: "eventName",
+              type: "string",
+            },
+            {
+              internalType: "uint256",
+              name: "eventDate",
+              type: "uint256",
+            },
+            {
+              internalType: "uint256",
+              name: "eventTime",
+              type: "uint256",
+            },
+            {
+              internalType: "uint256",
+              name: "seatNumber",
+              type: "uint256",
+            },
+            {
+              internalType: "uint256",
+              name: "price",
+              type: "uint256",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+          constant: true,
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "tokenId",
+              type: "uint256",
+            },
+          ],
+          name: "tokenURI",
+          outputs: [
+            {
+              internalType: "string",
+              name: "",
+              type: "string",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+          constant: true,
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "from",
+              type: "address",
+            },
+            {
+              internalType: "address",
+              name: "to",
+              type: "address",
+            },
+            {
+              internalType: "uint256",
+              name: "tokenId",
+              type: "uint256",
+            },
+          ],
+          name: "transferFrom",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "newOwner",
+              type: "address",
+            },
+          ],
+          name: "transferOwnership",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "to",
+              type: "address",
+            },
+            {
+              internalType: "string",
+              name: "eventName",
+              type: "string",
+            },
+            {
+              internalType: "uint256",
+              name: "eventDate",
+              type: "uint256",
+            },
+            {
+              internalType: "uint256",
+              name: "eventTime",
+              type: "uint256",
+            },
+            {
+              internalType: "uint256",
+              name: "seatNumber",
+              type: "uint256",
+            },
+            {
+              internalType: "uint256",
+              name: "price",
+              type: "uint256",
+            },
+          ],
+          name: "mintTicket",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "ticketId",
+              type: "uint256",
+            },
+          ],
+          name: "buyTicket",
+          outputs: [],
+          stateMutability: "payable",
+          type: "function",
+          payable: true,
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "ticketId",
+              type: "uint256",
+            },
+          ],
+          name: "getTicketPrice",
+          outputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+          constant: true,
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "ticketId",
+              type: "uint256",
+            },
+            {
+              internalType: "address",
+              name: "claimant",
+              type: "address",
+            },
+          ],
+          name: "verifyTicketOwnership",
+          outputs: [
+            {
+              internalType: "bool",
+              name: "",
+              type: "bool",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+          constant: true,
+        },
+      ]; // replace this with your contract's ABI
+      const contractAddress = "0x63754Cc7021A7a6fbee029724b47cb334cA6Ffa8"; // replace this with your deployed contract's address
 
-        const web3 = new Web3(window.ethereum);
-        const contract = new web3.eth.Contract(contractABI, contractAddress);
+      const web3 = new Web3(window.ethereum);
+      const contract = new web3.eth.Contract(contractABI, contractAddress);
 
         async function mintTicket() {
-            const eventName = document.getElementById('eventName').value;
+          const eventName = document.getElementById('eventName').value;
             const eventDateTime = document.getElementById('eventDateTime').value;
             const seatNumber = document.getElementById('seatNumber').value;
             const price = document.getElementById('price').value;
@@ -118,42 +668,54 @@
             const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
             const account = accounts[0];
             const eventTimestamp = Math.floor(new Date(eventDateTime).getTime() / 1000);
+            const eventDate = new Date(eventTimestamp * 1000); // Convert timestamp to milliseconds
+            const date = eventDate.toLocaleDateString(); // Get the date in local format
+            const time = eventDate.toLocaleTimeString(); // Get the time in local format
+
+            const [month, day, year] = date.split('/');
+            const [hours, minutes, seconds] = time.split(':');
+
+            const dateTimestamp = Math.floor(new Date(year, month - 1, day).getTime() / 1000);
+            const timeTimestamp = Math.floor(new Date(1970, 0, 1, hours, minutes, seconds).getTime() / 1000);
+
             const priceInWei = web3.utils.toWei(price, 'ether');
 
-            await contract.methods.mintTicket(account, eventName, eventTimestamp, seatNumber, priceInWei).send({ from: account });
+            await contract.methods.mintTicket(account, eventName, dateTimestamp, timeTimestamp, seatNumber, priceInWei).send({ from: account });
         }
 
         async function buyTicket() {
-            const ticketId = document.getElementById('ticketIdToBuy').value;
-
-            if (!ticketId) {
-                document.getElementById('buyTicketError').innerText = 'Please enter the ticket ID.';
-                return;
-            }
-
             const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
             const account = accounts[0];
+            const ticketId = document.getElementById('ticketIdToBuy').value;
             const price = await contract.methods.getTicketPrice(ticketId).call();
-
             await contract.methods.buyTicket(ticketId).send({ from: account, value: price });
         }
 
         async function verifyOwnership() {
             const ticketId = document.getElementById('ticketIdToVerify').value;
             const claimantAddress = document.getElementById('claimantAddress').value;
-
-            if (!ticketId || !claimantAddress) {
-                document.getElementById('verifyOwnershipError').innerText = 'Please fill in all the fields.';
-                return;
-            }
-
             const isOwner = await contract.methods.verifyTicketOwnership(ticketId, claimantAddress).call();
             document.getElementById('verifyResult').innerText = isOwner ? 'This address owns the ticket.' : 'This address does not own the ticket.';
         }
 
-        document.getElementById('mintTicketButton').addEventListener('click', mintTicket);
-        document.getElementById('buyTicketButton').addEventListener('click', buyTicket);
-        document.getElementById('verifyOwnershipButton').addEventListener('click', verifyOwnership);
+        async function getTicketPrice() {
+        const ticketId = document.getElementById("ticketIdToGetPrice").value;
+        const price = await contract.methods.getTicketPrice(ticketId).call();
+        alert("The price of the ticket is: " + price + " wei");
+      }
+
+      document
+        .getElementById("mintTicketButton")
+        .addEventListener("click", mintTicket);
+      document
+        .getElementById("buyTicketButton")
+        .addEventListener("click", buyTicket);
+      document
+        .getElementById("verifyOwnershipButton")
+        .addEventListener("click", verifyOwnership);
+      document
+        .getElementById("getPriceButton")
+        .addEventListener("click", getTicketPrice);
     </script>
-</body>
+  </body>
 </html>
