@@ -74,16 +74,7 @@
     <div>
       <h2>Mint Ticket</h2>
       <input type="text" id="eventName" placeholder="Event Name" />
-      <input
-        type="number"
-        id="eventDate"
-        placeholder="Event Date (Unix Timestamp)"
-      />
-      <input
-        type="number"
-        id="eventTime"
-        placeholder="Event Time (Unix Timestamp)"
-      />
+      <input type="datetime-local" id="eventDateTime" required>
       <input type="number" id="seatNumber" placeholder="Seat Number" />
       <input type="number" id="price" placeholder="Price (In Ether)" />
       <button id="mintTicketButton">Mint Ticket</button>
@@ -655,15 +646,32 @@
       const contract = new web3.eth.Contract(contractABI, contractAddress);
 
         async function mintTicket() {
-            const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
-            const account = accounts[0];
-            const eventName = document.getElementById('eventName').value;
-            const eventDate = document.getElementById('eventDate').value;
-            const eventTime = document.getElementById('eventTime').value;
+          const eventName = document.getElementById('eventName').value;
+            const eventDateTime = document.getElementById('eventDateTime').value;
             const seatNumber = document.getElementById('seatNumber').value;
             const price = document.getElementById('price').value;
+
+            if (!eventName || !eventDateTime || !seatNumber || !price) {
+                document.getElementById('mintTicketError').innerText = 'Please fill in all the fields.';
+                return;
+            }
+
+            const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+            const account = accounts[0];
+            const eventTimestamp = Math.floor(new Date(eventDateTime).getTime() / 1000);
+            const eventDate = new Date(eventTimestamp * 1000); // Convert timestamp to milliseconds
+            const date = eventDate.toLocaleDateString(); // Get the date in local format
+            const time = eventDate.toLocaleTimeString(); // Get the time in local format
+
+            const [month, day, year] = date.split('/');
+            const [hours, minutes, seconds] = time.split(':');
+
+            const dateTimestamp = Math.floor(new Date(year, month - 1, day).getTime() / 1000);
+            const timeTimestamp = Math.floor(new Date(1970, 0, 1, hours, minutes, seconds).getTime() / 1000);
+
             const priceInWei = web3.utils.toWei(price, 'ether');
-            await contract.methods.mintTicket(account, eventName, eventDate, eventTime, seatNumber, priceInWei).send({ from: account });
+
+            await contract.methods.mintTicket(account, eventName, dateTimestamp, timeTimestamp, seatNumber, priceInWei).send({ from: account });
         }
 
         async function buyTicket() {
