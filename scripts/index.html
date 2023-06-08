@@ -90,6 +90,16 @@
     </div>
 
     <div>
+      <h2>Get Ticket Price</h2>
+      <input
+        type="text"
+        id="ticketIdToGetPrice"
+        placeholder="Enter ticket ID"
+      />
+      <button id="getPriceButton">Get Ticket Price</button>
+    </div>
+
+    <div>
         <h2>Buy Ticket</h2>
         <input type="number" id="ticketIdToBuy" placeholder="Ticket ID">
         <button id="buyTicketButton">Buy Ticket</button>
@@ -671,6 +681,12 @@
             document.getElementById('verifyResult').innerText = isOwner ? 'This address owns the ticket.' : 'This address does not own the ticket.';
         }
 
+        async function getTicketPrice() {
+        const ticketId = document.getElementById("ticketIdToGetPrice").value;
+        const price = await contract.methods.getTicketPrice(ticketId).call();
+        alert("The price of the ticket is: " + price + " wei");
+      }
+
       document
         .getElementById("mintTicketButton")
         .addEventListener("click", mintTicket);
@@ -680,7 +696,6 @@
       document
         .getElementById("verifyOwnershipButton")
         .addEventListener("click", verifyOwnership);
-
       document
         .getElementById("getPriceButton")
         .addEventListener("click", getTicketPrice);
